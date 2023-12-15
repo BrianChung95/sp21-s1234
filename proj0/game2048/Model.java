@@ -94,6 +94,104 @@ public class Model extends Observable {
         setChanged();
     }
 
+    public int[] getColTiles(int colNum) {
+        int[] ts = new int[4];
+        for (int i = 0; i < board.size(); ++i) {
+            Tile t = board.tile(colNum, i);
+            if (t == null) {
+                ts[i] = 0;
+            } else {
+                ts[i] = t.value();
+            }
+        }
+        return ts;
+    }
+
+    public void moveVerToEmpty (int oriRow, int col, int row, Tile t, int[] tileValues) {
+        if(t != null){
+            board.move(col, row, t);
+            tileValues[row] = tileValues[oriRow];
+            tileValues[oriRow] = 0;
+        }
+    }
+
+    public void moveVerAndMerge (int oriRow, int col, int row, Tile t, int[] tileValues) {
+        if (t != null) {
+            score += tileValues[row] * 2;
+            board.move(col, row, t);
+            tileValues[row] *= 2;
+            tileValues[oriRow] = 0;
+        }
+    }
+//    public void processOneColUp(int colNum) {
+//        int[] tileValues = getColTiles(colNum);
+//        for (int i = 3; i >= 0; --i) {
+//            Tile t = board.tile(colNum, i);
+//            if (i == 2){
+//                if (tileValues[3] == 0){
+//                    moveVerToEmpty(2, colNum, 3, t, tileValues);
+//                } else if (tileValues[2] == tileValues[3]) {
+//                    moveVerAndMerge(2, colNum, 3, t, tileValues);
+//                }
+//            } else if (i == 1) {
+//                if (tileValues[3] == 0 && tileValues[2] == 0) {
+//                    moveVerToEmpty(1, colNum, 3, t, tileValues);
+//                } else if (tileValues[2] == 0) {
+//                    if (tileValues[1] == tileValues[3]) {
+//                        moveVerAndMerge(1, colNum, 3, t, tileValues);
+//                    } else {
+//                        moveVerToEmpty(1, colNum, 2, t, tileValues);
+//                    }
+//                } else if (tileValues[1] == tileValues[2]) {
+//                    moveVerAndMerge(1, colNum, 2, t, tileValues);
+//                }
+//            } else if (i == 0) {
+//                if (tileValues[3] == 0 && tileValues[2] == 0 && tileValues[1] == 0) {
+//                    moveVerToEmpty(0, colNum, 3, t, tileValues);
+//                } else if (tileValues[2] == 0 && tileValues[1] == 0) {
+//                    if (tileValues[0] == tileValues[3]) {
+//                        moveVerAndMerge(0, colNum, 3, t, tileValues);
+//                    } else {
+//                        moveVerToEmpty(0, colNum, 2, t, tileValues);
+//                    }
+//                } else if (tileValues[1] == 0) {
+//                    if (tileValues[0] == tileValues[2]) {
+//                        moveVerAndMerge(0, colNum, 2, t, tileValues);
+//                    } else {
+//                        moveVerToEmpty(0, colNum, 1, t, tileValues);
+//                    }
+//                } else if (tileValues[0] == tileValues[1]) {
+//                    moveVerAndMerge(0, colNum, 1, t, tileValues);
+//                }
+//            }
+//        }
+//    }
+
+    public void processOneColUp(int colNum) {
+        int[] tileValues = getColTiles(colNum);
+        for (int i = 2; i >= 0; --i) {
+            Tile t = board.tile(colNum, i);
+            if (tileValues[i] == 0) {
+                continue; // Skip empty tiles
+            }
+
+            int target = i;
+            // Find the first empty slot or tile with the same value above the current tile
+            while (target < 3 && (tileValues[target + 1] == 0 || tileValues[target + 1] == tileValues[i])) {
+                target++;
+            }
+
+            if (tileValues[i] == tileValues[target]) {
+                moveVerAndMerge(i, colNum, target, t, tileValues);
+            } else if (tileValues[target] == 0) {
+                moveVerToEmpty(i, colNum, target, t, tileValues);
+            }
+        }
+    }
+
+
+
+
     /** Tilt the board toward SIDE. Return true iff this changes the board.
      *
      * 1. If two Tile objects are adjacent in the direction of motion and have
@@ -110,10 +208,16 @@ public class Model extends Observable {
         boolean changed;
         changed = false;
 
+        board.setViewingPerspective(side);
+        for (int i = 0; i < board.size(); ++i){
+            processOneColUp(i);
+            changed = true;
+        }
+
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
-
+        board.setViewingPerspective(Side.NORTH);
         checkGameOver();
         if (changed) {
             setChanged();
@@ -138,6 +242,12 @@ public class Model extends Observable {
      * */
     public static boolean emptySpaceExists(Board b) {
         // TODO: Fill in this function.
+        int size = b.size();
+        for(int i = 0; i < size; ++i){
+            for(int j = 0; j < size; ++j){
+                if (b.tile(i, j) == null) return true;
+            }
+        }
         return false;
     }
 
@@ -147,7 +257,15 @@ public class Model extends Observable {
      * given a Tile object t, we get its value with t.value().
      */
     public static boolean maxTileExists(Board b) {
-        // TODO: Fill in this function.
+        int size = b.size();
+        for(int i = 0; i < size; ++i){
+            for (int j = 0; j < size; ++j){
+                Tile tile = b.tile(i, j);
+                if (tile != null && tile.value() == MAX_PIECE){
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -159,6 +277,18 @@ public class Model extends Observable {
      */
     public static boolean atLeastOneMoveExists(Board b) {
         // TODO: Fill in this function.
+        int size = b.size();
+        if (emptySpaceExists(b)) return true;
+        for (int i = 0; i < size; ++i){
+            for (int j = 0; j < size; ++j){
+                if (i < size - 1){
+                    if (b.tile(i, j).value() == b.tile(i + 1, j).value()) return true;
+                }
+                if (j < size - 1){
+                    if (b.tile(i, j).value() == b.tile(i, j + 1).value()) return true;
+                }
+            }
+        }
         return false;
     }
 
