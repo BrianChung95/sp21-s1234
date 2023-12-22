@@ -25,7 +25,7 @@ public class TimeAList {
         AList<Integer> Ns = new AList<>();
         AList<Double> times = new AList<>();
 
-        addTimes(1000, 15, times, Ns);
+        addTimes(1000, 6, times, Ns);
         printTimingTable(Ns, times, Ns);
     }
 
