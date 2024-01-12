@@ -108,6 +108,9 @@ public class ArrayDeque<T> {
     }
 
     public T get(int index) {
+        if (index >= size || index < 0) {
+            return null;
+        }
         int i = index + nextFirst + 1;
         int oldStart = (nextFirst + 1) % items.length;
         int oldEnd = (nextLast - 1 + items.length) % items.length;
