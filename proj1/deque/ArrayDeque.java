@@ -127,36 +127,15 @@ public class ArrayDeque<T> {
         }
         int i = index + nextFirst + 1;
 
-        return items[i % (items.length - 1)];
+        return items[i % (items.length)];
     }
 
     public static void main(String[] args) {
-        ArrayDeque<String> id = new ArrayDeque<>();
+        ArrayDeque<Integer> deque = new ArrayDeque<>();
+        deque.addLast(0);   // Deque: [0]
+        deque.addLast(1);   // Deque: [0, 1]
+        deque.addFirst(2);
 
-
-        id.addLast("a");
-        id.addLast("b");
-        id.addFirst("c");
-        id.addLast("d");
-        id.addLast("e");
-        id.addFirst("f");
-        id.addLast("g");
-        id.addLast("h");
-        id.addLast("Z");
-        id.addLast("A");
-        id.addLast("B");
-        id.addFirst("C");
-        id.removeFirst();
-        id.removeFirst();
-        id.removeFirst();
-        id.removeFirst();
-        id.removeFirst();
-        id.removeFirst();
-        id.removeFirst();
-        id.removeFirst();
-        id.removeFirst();
-        id.removeFirst();
-        id.removeFirst();
-        id.removeFirst();
+        System.out.println(deque.get(2));
     }
 }
