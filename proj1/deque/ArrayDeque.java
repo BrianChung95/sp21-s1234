@@ -1,12 +1,16 @@
 package deque;
 
-public class ArrayDeque<T> {
+import java.util.Iterator;
+
+public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
     private T[] items;
     private int size;
     private int nextFirst;
     private int nextLast;
 
-    @SuppressWarnings("unchecked")
+    /**
+     * Create an empty ArrayDeque
+     */
     public ArrayDeque() {
         items = (T []) new Object[8];
         size = 0;
@@ -14,7 +18,10 @@ public class ArrayDeque<T> {
         nextLast = 5;
     }
 
-    @SuppressWarnings("unchecked")
+    /**
+     * Helper method. Resize the underlying Array to a new size
+     * @param cap The new size of the underlying Array
+     */
     private void resize(int cap) {
         T[] a = (T[]) new Object[cap];
 
@@ -32,6 +39,10 @@ public class ArrayDeque<T> {
         nextLast = size;
     }
 
+    /**
+     * Add an itemt to the front of the ArrayDeque.
+     * @param item Item to be added
+     */
     public void addFirst(T item) {
         if (size == items.length) {
             resize(size * 2);
@@ -45,6 +56,10 @@ public class ArrayDeque<T> {
         }
     }
 
+    /**
+     * Add an item to the end of the ArrayDeque
+     * @param item Item to be added
+     */
     public void addLast(T item) {
         if (size == items.length) {
             resize(size * 2);
@@ -58,14 +73,17 @@ public class ArrayDeque<T> {
         }
     }
 
-    public boolean isEmpty() {
-        return size == 0;
-    }
-
+    /**
+     * return the size of the ArrayDeque
+     * @return The size of the ArrayDeque
+     */
     public int size() {
         return size;
     }
 
+    /**
+     * Print the Deque.
+     */
     public void printDeque() {
         int oldFirst = (nextFirst + 1) % items.length;
         int oldLast = (nextLast - 1 + items.length) % items.length;
@@ -84,6 +102,10 @@ public class ArrayDeque<T> {
         System.out.println();
     }
 
+    /**
+     * Remove the first item of the ArrayDeque and return it.
+     * @return The first item of the ArrayDeque
+     */
     public T removeFirst() {
         if (size == 0) {
             return null;
@@ -103,6 +125,10 @@ public class ArrayDeque<T> {
         return removed;
     }
 
+    /**
+     * Remove the last item of the ArrayDeque and Return it.
+     * @return The last item of the ArrayDeque
+     */
     public T removeLast() {
         if (size == 0) {
             return null;
@@ -121,6 +147,11 @@ public class ArrayDeque<T> {
         return removed;
     }
 
+    /**
+     * Get the item from the ArrayDeque at a specific position and return it.
+     * @param index The position of the item in the ArrayDeque
+     * @return The item at position index
+     */
     public T get(int index) {
         if (index >= size || index < 0) {
             return null;
@@ -130,12 +161,60 @@ public class ArrayDeque<T> {
         return items[i % (items.length)];
     }
 
-    public static void main(String[] args) {
-        ArrayDeque<Integer> deque = new ArrayDeque<>();
-        deque.addLast(0);   // Deque: [0]
-        deque.addLast(1);   // Deque: [0, 1]
-        deque.addFirst(2);
+    /**
+     * Iterator class for ArrayDeque
+     */
+    private class ArrayDequeIterator implements Iterator<T> {
+        private int pos;
 
-        System.out.println(deque.get(2));
+        public ArrayDequeIterator() {
+            pos = 0;
+        }
+        @Override
+        public boolean hasNext() {
+            return pos < size;
+        }
+
+        @Override
+        public T next() {
+            T returnItem = get(pos);
+            pos += 1;
+            return returnItem;
+        }
+    }
+
+    /**
+     * Return an iterator for ArrayDeque class
+     * @return An iterator
+     */
+    @Override
+    public Iterator<T> iterator() {
+        return new ArrayDequeIterator();
+    }
+
+    /**
+     * Check if 2 ArrayDeque equal to each other. They have to be in the same size, and each of the item should be
+     * equal.
+     * @param o Item to be compared with
+     * @return True if 2 ArrayDeque are equal, otherwise false.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o instanceof ArrayDeque other){
+            if (this.size() != other.size()) {
+                return false;
+            }
+            for (int i = 0; i < size(); ++i) {
+                if (!this.get(i).equals(other.get(i))) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
     }
 }
