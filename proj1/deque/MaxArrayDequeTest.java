@@ -29,7 +29,7 @@ public class MaxArrayDequeTest {
 
     @Test
     public void addIsEmptySizeTest2() {
-        MaxArrayDeque<Integer> mad = new MaxArrayDeque<>();
+        MaxArrayDeque<Integer> mad = new MaxArrayDeque<>(new valueComparator());
         for (int i = 0; i < 500; ++i) {
             mad.addLast(i);
         }

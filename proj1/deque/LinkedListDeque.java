@@ -8,7 +8,7 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
         private ListNode _next;
         private ListNode _prev;
 
-        public ListNode(T item, ListNode prev, ListNode next) {
+        ListNode(T item, ListNode prev, ListNode next) {
             _item = item;
             _prev = prev;
             _next = next;
@@ -72,7 +72,7 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
      * @return The first item of the LinkedListDeque
      */
     public T removeFirst() {
-        if (size == 0){
+        if (size == 0) {
             return null;
         }
         T item = sentinel._next._item;
@@ -87,7 +87,7 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
      * @return The last item of LinkedListDeque
      */
     public T removeLast() {
-        if (size == 0){
+        if (size == 0) {
             return null;
         }
         T item = sentinel._prev._item;
@@ -144,7 +144,7 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
 
     private class LinkedListDequeIterator implements Iterator<T> {
         private int pos;
-        public LinkedListDequeIterator() {
+        LinkedListDequeIterator() {
             pos = 0;
         }
         @Override
@@ -170,8 +170,8 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
     }
 
     /**
-     * Check if this LinkedListDeque equals the other LinkedListDeque. Return true if they have the same
-     * size and each of the item at the same index is the same.
+     * Check if this LinkedListDeque equals the other LinkedListDeque. Return
+     * true if they have the samesize and each of the item at the same index is the same.
      * @param o The item to compare with.
      * @return True if equal, false if not
      */
@@ -180,11 +180,11 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof Deque)) {
             return false;
         }
 
-        LinkedListDeque<T> other = (LinkedListDeque<T>) o;
+        Deque<T> other = (Deque<T>) o;
 
         if (this.size() != other.size()) {
             return false;

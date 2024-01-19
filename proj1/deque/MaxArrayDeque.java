@@ -2,13 +2,8 @@ package deque;
 
 import java.util.Comparator;
 
-public class MaxArrayDeque<T> extends ArrayDeque<T>{
+public class MaxArrayDeque<T> extends ArrayDeque<T> {
     private final Comparator<T> comparator;
-
-    public MaxArrayDeque() {
-        super();
-        comparator = null;
-    }
 
     public MaxArrayDeque(Comparator<T> c) {
         super();
@@ -42,26 +37,4 @@ public class MaxArrayDeque<T> extends ArrayDeque<T>{
         }
         return max;
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        LinkedListDeque<T> other = (LinkedListDeque<T>) o;
-
-        if (this.size() != other.size()) {
-            return false;
-        }
-        for (int i = 0; i < size(); ++i) {
-            if (!this.get(i).equals(other.get(i))) {
-                return false;
-            }
-        }
-        return true;
-}
 }
