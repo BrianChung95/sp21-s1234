@@ -11,14 +11,24 @@ public class Main {
      *  <COMMAND> <OPERAND1> <OPERAND2> ... 
      */
     public static void main(String[] args) {
-        // TODO: what if args is empty?
+        if (args.length == 0) {
+            return;
+        }
         String firstArg = args[0];
         switch(firstArg) {
             case "init":
                 Repository.init();
                 break;
             case "add":
-                // TODO: handle the `add [filename]` command
+                Repository.add(args[1]);
+                break;
+            case "commit":
+                if (args.length == 1) {
+                    System.out.println("Please enter a commit message.");
+                    return;
+                }
+
+                Repository.commit(args[1]);
                 break;
             // TODO: FILL THE REST IN
         }

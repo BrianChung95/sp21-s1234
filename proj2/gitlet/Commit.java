@@ -6,8 +6,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.Formatter;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+
 import static gitlet.Utils.*;
 
 /** Represents a gitlet commit object.
@@ -39,6 +41,38 @@ public class Commit implements Dumpable, Serializable {
         REMOVAL
     }
 
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public Date getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Date timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public String getParent() {
+        return parent;
+    }
+
+    public void setParent(String parent) {
+        this.parent = parent;
+    }
+
+    public HashMap<String, String> getTrackedFiles() {
+        return trackedFiles;
+    }
+
+    public void setTrackedFiles(HashMap<String, String> trackedFiles) {
+        this.trackedFiles = trackedFiles;
+    }
+
     /**
      * Commit Constructor for init command.
      */
@@ -47,6 +81,24 @@ public class Commit implements Dumpable, Serializable {
         this.parent = null;
         this.timestamp = new Date(0L); // TODO: verify this time
         this.trackedFiles = new HashMap<>();
+    }
+
+    public Commit(Index index, String message) {
+        this.message = message;
+        this.parent = RepositoryUtils.getHeadHash();
+        this.timestamp = new Date(0L);
+        this.trackedFiles = RepositoryUtils.getHeadCommit().getTrackedFiles();
+        HashMap<String, String> addStagingArea = index.getAdditionStagingArea();
+        HashSet<String> removeStagingArea = index.getRemovalStagingArea();
+        for (Map.Entry<String, String> entry : addStagingArea.entrySet()) {
+            String fileName = entry.getKey();
+            String fileHash = entry.getValue();
+            trackedFiles.put(fileName, fileHash);
+        }
+
+        for (String fileName : removeStagingArea) {
+            trackedFiles.remove(fileName);
+        }
     }
 
     public Commit(String message, String parent, HashMap<String, String> stagedFiles, CommitFlag flag) {
@@ -77,6 +129,18 @@ public class Commit implements Dumpable, Serializable {
             writeObject(commit, this);
         }
         return commitHash;
+    }
+
+    public static Commit loadCommit(String hash) {
+        File commitFile = join(Repository.OBJ_DIR, hash);
+        if (commitFile.exists()) {
+            return readObject(commitFile, Commit.class);
+        }
+        return null;
+    }
+
+    public String getHashForFile(String fileName) {
+        return trackedFiles.getOrDefault(fileName, null);
     }
 
     /**
