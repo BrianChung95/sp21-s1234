@@ -127,9 +127,10 @@ public class Repository {
     }
 
     /**
-     * TODO: If the file is tracked in the current commit, stage it for removal and remove the file from the working
-     * directory if the user has not already done so (do not remove it unless it is tracked in the current commit).
-     * @param fileName
+     * Perform git remove.
+     * 1: Remove the file if it's currently staged for addition.
+     * 2: Stage it for removal, remove it from working dir if it's tracked by the current commit and remove the file.
+     * @param fileName The name of the file to be removed
      */
     public static void remove(String fileName) {
         Index index = Index.loadIndex();
@@ -152,5 +153,27 @@ public class Repository {
         }
 
         index.saveIndex();
+    }
+
+    /**
+     * TODO: By the way, you’ll find that the Java classes java.util.Date and java.util.Formatter are useful for getting and formatting times
+     * TODO: Date format: Date: Sat Nov 11 12:30:00 2017 -0800
+     */
+    public static void log() {
+        Commit cur = RepositoryUtils.getHeadCommit();
+        String curHash = RepositoryUtils.getHeadHash();
+        String parentHash = cur.getParent();
+        while (curHash != null) {
+            System.out.println("===");
+            System.out.println("commit " + curHash);
+            System.out.println("Date: " + cur.getTimestamp());
+            System.out.println(cur.getMessage());
+            System.out.println();
+            curHash = parentHash;
+            if (parentHash != null) {
+                cur = RepositoryUtils.getCommit(parentHash);
+                parentHash = cur.getParent();
+            }
+        }
     }
 }

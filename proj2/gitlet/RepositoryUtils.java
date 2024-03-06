@@ -52,4 +52,9 @@ public class RepositoryUtils {
         File headFile = join(Repository.OBJ_DIR, headHash);
         return readObject(headFile, Commit.class);
     }
+
+    public static Commit getCommit(String hash) {
+        File commitFile = join(Repository.OBJ_DIR, hash);
+        return readObject(commitFile, Commit.class);
+    }
 }

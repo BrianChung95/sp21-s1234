@@ -15,9 +15,8 @@ import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.Formatter;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 
 /** Assorted utilities.
@@ -243,5 +242,11 @@ class Utils {
         Path targetPath = Paths.get(targetFile.getAbsolutePath());
         Path relativePath = basePath.relativize(targetPath);
         return relativePath.toString();
+    }
+
+    static String formatDate(Date date) {
+        SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy Z");
+        sdf.setTimeZone(TimeZone.getTimeZone("GMT-0800"));
+        return sdf.format(date);
     }
 }

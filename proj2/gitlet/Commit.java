@@ -31,7 +31,7 @@ public class Commit implements Dumpable, Serializable {
     private String message;
 
     /** The timestamp of the Commit */
-    private Date timestamp;
+    private String timestamp;
     private String parent;
 
     private HashMap<String, String> trackedFiles;
@@ -44,11 +44,11 @@ public class Commit implements Dumpable, Serializable {
         this.message = message;
     }
 
-    public Date getTimestamp() {
+    public String getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(Date timestamp) {
+    public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
     }
 
@@ -74,14 +74,14 @@ public class Commit implements Dumpable, Serializable {
     public Commit() {
         this.message = "initial commit";
         this.parent = null;
-        this.timestamp = new Date(0L); // TODO: verify this time
+        this.timestamp = Utils.formatDate(new Date(0L)); // TODO: verify this time
         this.trackedFiles = new HashMap<>();
     }
 
     public Commit(Index index, String message) {
         this.message = message;
         this.parent = RepositoryUtils.getHeadHash();
-        this.timestamp = new Date();
+        this.timestamp = Utils.formatDate(new Date());
         this.trackedFiles = RepositoryUtils.getHeadCommit().getTrackedFiles();
         HashMap<String, String> addStagingArea = index.getAdditionStagingArea();
         HashSet<String> removeStagingArea = index.getRemovalStagingArea();

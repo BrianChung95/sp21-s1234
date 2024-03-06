@@ -33,6 +33,9 @@ public class Main {
             case "rm":
                 Repository.remove(args[1]);
                 break;
+            case "log":
+                Repository.log();
+                break;
             case "prIndex":
                 Index.printIndex();
                 break;
