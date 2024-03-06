@@ -36,11 +36,6 @@ public class Commit implements Dumpable, Serializable {
 
     private HashMap<String, String> trackedFiles;
 
-    public enum CommitFlag {
-        ADDITION,
-        REMOVAL
-    }
-
     public String getMessage() {
         return message;
     }
@@ -86,7 +81,7 @@ public class Commit implements Dumpable, Serializable {
     public Commit(Index index, String message) {
         this.message = message;
         this.parent = RepositoryUtils.getHeadHash();
-        this.timestamp = new Date(0L);
+        this.timestamp = new Date();
         this.trackedFiles = RepositoryUtils.getHeadCommit().getTrackedFiles();
         HashMap<String, String> addStagingArea = index.getAdditionStagingArea();
         HashSet<String> removeStagingArea = index.getRemovalStagingArea();
@@ -101,20 +96,6 @@ public class Commit implements Dumpable, Serializable {
         }
     }
 
-    public Commit(String message, String parent, HashMap<String, String> stagedFiles, CommitFlag flag) {
-        this.message = message;
-        this.parent = parent;
-        this.timestamp = new Date();
-        // TODO: Finish up this constructor. Or think of a better design
-        switch (flag) {
-            case ADDITION:
-                break;
-            case REMOVAL:
-                break;
-            default:
-                break;
-        }
-    }
 
     public String  persistCommit() {
         byte[] serializedCommit = serialize(this);
@@ -142,6 +123,11 @@ public class Commit implements Dumpable, Serializable {
     public String getHashForFile(String fileName) {
         return trackedFiles.getOrDefault(fileName, null);
     }
+
+    public boolean isTracked(String fileName) {
+        return trackedFiles.containsKey(fileName);
+    }
+
 
     /**
      * TODO: finish up dump method

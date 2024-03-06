@@ -30,7 +30,20 @@ public class Main {
 
                 Repository.commit(args[1]);
                 break;
-            // TODO: FILL THE REST IN
+            case "rm":
+                Repository.remove(args[1]);
+                break;
+            case "prIndex":
+                Index.printIndex();
+                break;
+            case "prCommit":
+                Commit commit = RepositoryUtils.getHeadCommit();
+                System.out.println("Parent: " + commit.getParent());
+                System.out.println("Commit time: " + commit.getTimestamp());
+                System.out.println("Tracked files: " + commit.getTrackedFiles());
+                System.out.println("Message: " + commit.getMessage());
+                break;
+                // TODO: FILL THE REST IN
         }
     }
 }

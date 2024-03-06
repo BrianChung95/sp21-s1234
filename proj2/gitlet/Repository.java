@@ -127,13 +127,30 @@ public class Repository {
     }
 
     /**
-     * TODO: Unstage the file if it is currently staged for addition.
      * TODO: If the file is tracked in the current commit, stage it for removal and remove the file from the working
      * directory if the user has not already done so (do not remove it unless it is tracked in the current commit).
-     * TODO: If the file is neither staged nor tracked by the head commit, print the error message No reason to remove the file.
      * @param fileName
      */
     public static void remove(String fileName) {
+        Index index = Index.loadIndex();
+        Commit curCommit = RepositoryUtils.getHeadCommit();
 
+        // If the file is neither staged nor tracked by the head commit
+        if (!index.isInAdditional(fileName) && !curCommit.isTracked(fileName)) {
+            System.out.println("No reason to remove the file");
+        }
+
+        // Unstage the file if it is currently staged for addition.
+        index.removeFromAdditionalIfExist(fileName);
+
+        if (curCommit.isTracked(fileName)) {
+            // If the file is tracked in the current commit, stage it for removal
+            index.addToRemoval(fileName);
+            // Remove the file from the working directory
+            File fileToDelete = Utils.join(CWD, fileName);
+            Utils.restrictedDelete(fileToDelete);
+        }
+
+        index.saveIndex();
     }
 }

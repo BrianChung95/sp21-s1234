@@ -77,4 +77,10 @@ public class Index implements Serializable {
         this.additionStagingArea.clear();
         this.removalStagingArea.clear();
     }
+
+    public static void printIndex() {
+        Index index = loadIndex();
+        System.out.println(index.additionStagingArea);
+        System.out.println(index.removalStagingArea);
+    }
 }
