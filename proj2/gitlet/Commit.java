@@ -128,6 +128,16 @@ public class Commit implements Dumpable, Serializable {
         return trackedFiles.containsKey(fileName);
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("Date: ");
+        sb.append(this.timestamp);
+        sb.append("\n");
+        sb.append(this.message);
+        sb.append("\n");
+        return sb.toString();
+    }
+
 
     /**
      * TODO: finish up dump method

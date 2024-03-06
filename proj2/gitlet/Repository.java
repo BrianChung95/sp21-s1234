@@ -2,6 +2,7 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import static gitlet.Utils.*;
 import static gitlet.RepositoryUtils.*;
@@ -156,8 +157,7 @@ public class Repository {
     }
 
     /**
-     * TODO: By the way, you’ll find that the Java classes java.util.Date and java.util.Formatter are useful for getting and formatting times
-     * TODO: Date format: Date: Sat Nov 11 12:30:00 2017 -0800
+     * Log the commit history.
      */
     public static void log() {
         Commit cur = RepositoryUtils.getHeadCommit();
@@ -166,13 +166,26 @@ public class Repository {
         while (curHash != null) {
             System.out.println("===");
             System.out.println("commit " + curHash);
-            System.out.println("Date: " + cur.getTimestamp());
-            System.out.println(cur.getMessage());
-            System.out.println();
+            System.out.println(cur);
             curHash = parentHash;
             if (parentHash != null) {
                 cur = RepositoryUtils.getCommit(parentHash);
                 parentHash = cur.getParent();
+            }
+        }
+    }
+
+    public static void globalLog() {
+        List<String> filenames = Utils.plainFilenamesIn(OBJ_DIR);
+        if (filenames == null) return;
+
+        for (String fn : filenames) {
+            try {
+                File commitFile = Utils.join(OBJ_DIR, fn);
+                Commit commit = Utils.readObject(commitFile, Commit.class);
+                System.out.println("commit " + fn);
+                System.out.println(commit);
+            } catch (Exception e) {
             }
         }
     }
