@@ -1,8 +1,10 @@
 package gitlet;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
 public class Index implements Serializable {
     private HashMap<String, String> additionStagingArea;
@@ -83,4 +85,20 @@ public class Index implements Serializable {
         System.out.println(index.additionStagingArea);
         System.out.println(index.removalStagingArea);
     }
+
+    public static void printStagedFiles() {
+        Index index = loadIndex();
+        for (String s : index.additionStagingArea.keySet()) {
+            System.out.println(s);
+        }
+    }
+
+    public static void printRemovedFiles() {
+        Index index = loadIndex();
+        for (String s : index.removalStagingArea) {
+            System.out.println(s);
+        }
+    }
+
+
 }

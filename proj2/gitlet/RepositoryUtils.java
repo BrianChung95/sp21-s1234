@@ -2,6 +2,7 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import static gitlet.Utils.*;
 
@@ -29,17 +30,12 @@ public class RepositoryUtils {
     public static String getHeadHash() {
         String headFileContent = readContentsAsString(Repository.HEAD_FILE);
         String headHash;
-        // If HEAD file starts with 'ref: ', then it's a reference to file in heads folder
-        if (headFileContent.startsWith(Repository.HEAD_FILE_REF_PREFIX)) {
-            String pathToHead = headFileContent.substring(Repository.HEAD_FILE_REF_PREFIX.length());
-            // Reads the file in heads folder that contains hash of the HEAD commit
-            File headHashFile = join(Repository.GITLET_DIR, pathToHead);
-            headHash = readContentsAsString(headHashFile);
 
-        } else {
-            // Else it's the hash of the HEAD commit
-            headHash = headFileContent;
-        }
+        String pathToHead = headFileContent.substring(Repository.HEAD_FILE_REF_PREFIX.length());
+        // Reads the file in heads folder that contains hash of the HEAD commit
+        File headHashFile = join(Repository.GITLET_DIR, pathToHead);
+        headHash = readContentsAsString(headHashFile);
+
         return headHash;
     }
 
@@ -56,5 +52,20 @@ public class RepositoryUtils {
     public static Commit getCommit(String hash) {
         File commitFile = join(Repository.OBJ_DIR, hash);
         return readObject(commitFile, Commit.class);
+    }
+
+    public static List<String> getAllBranchesWithCurMarked() {
+        List<String> filenames = Utils.plainFilenamesIn(Repository.HEADS_DIR);
+        if (filenames == null) return null;
+
+        String headFileContent = readContentsAsString(Repository.HEAD_FILE);
+        // Get the name of the current head by extracting word after the last \
+        String curHead = headFileContent.substring(headFileContent.lastIndexOf('\\') + 1);
+        for (int i = 0; i < filenames.size(); ++i) {
+            if (filenames.get(i).equals(curHead)) {
+                filenames.set(i, "*" + curHead);
+            }
+        }
+        return filenames;
     }
 }

@@ -175,6 +175,9 @@ public class Repository {
         }
     }
 
+    /**
+     * Prints information about all commits ever made. The order of the commits does not matter here.
+     */
     public static void globalLog() {
         List<String> filenames = Utils.plainFilenamesIn(OBJ_DIR);
         if (filenames == null) return;
@@ -183,10 +186,58 @@ public class Repository {
             try {
                 File commitFile = Utils.join(OBJ_DIR, fn);
                 Commit commit = Utils.readObject(commitFile, Commit.class);
+                System.out.println("===");
                 System.out.println("commit " + fn);
                 System.out.println(commit);
-            } catch (Exception e) {
+            } catch (IllegalArgumentException e) {
             }
         }
+    }
+
+    /**
+     *  Prints out the ids of all commits that have the given commit message, one per line.
+     * @param message The commit message we are searching for.
+     */
+    public static void find(String message) {
+        if (message.isEmpty()) return;
+
+        List<String> filenames = Utils.plainFilenamesIn(OBJ_DIR);
+        if (filenames == null) return;
+        for (String fn : filenames) {
+            try {
+                File commitFile = Utils.join(OBJ_DIR, fn);
+                Commit commit = Utils.readObject(commitFile, Commit.class);
+                if (message.equals(commit.getMessage())){
+                    System.out.println(fn);
+                }
+            } catch (IllegalArgumentException e) {
+            }
+        }
+    }
+
+    /**
+     * Displays current status of the repository.
+     * TODO: Entries should be listed in lexicographic order
+     * TODO: Modifications Not Staged For Commit
+     * TODO: Untracked Files
+     */
+    public static void status() {
+        List<String> branches = RepositoryUtils.getAllBranchesWithCurMarked();
+        System.out.println("=== Branches ===");
+        for (String branch : branches) {
+            System.out.println(branch);
+        }
+        System.out.println();
+
+        System.out.println("=== Staged Files ===");
+        Index.printStagedFiles();
+        System.out.println();
+
+        System.out.println("=== Removed Files ===");
+        Index.printRemovedFiles();
+        System.out.println();
+
+        System.out.println("=== Modifications Not Staged For Commit ===");
+        System.out.println("=== Untracked Files ===");
     }
 }
