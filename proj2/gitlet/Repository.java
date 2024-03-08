@@ -240,4 +240,55 @@ public class Repository {
         System.out.println("=== Modifications Not Staged For Commit ===");
         System.out.println("=== Untracked Files ===");
     }
+
+    /**
+     * Restore a file from a specific commit to current working directory. If commit ID is null,
+     * restore the file from current head commit.
+     *
+     * @param commitId ID of the commit that the file comes from.
+     * @param filename The name of the file that will be restored to the working directory.
+     */
+    public static void checkoutFile(String commitId, String filename) {
+        Commit commit;
+        if (commitId == null) {
+            // If no commitId passed in, we are restoring file from the head commit.
+            commit = getHeadCommit();
+        } else {
+            // Otherwise, we are restoring file from the specified commit.
+            try {
+                commit = getCommit(commitId);
+            } catch (IllegalArgumentException e) {
+                // Prints error message if the commit doesn't exist.
+                System.out.println("No commit with that id exists.");
+                return;
+            }
+        }
+        String fileHash = commit.getHashForFile(filename);
+        if (fileHash == null) {
+            System.out.println("File does not exist in that commit.");
+            return;
+        }
+        // File that's tracked by the commit.
+        File restoringFile = Utils.join(OBJ_DIR, fileHash);
+        String content = Utils.readContentsAsString(restoringFile);
+        File overwrittenFile = Utils.join(CWD, filename);
+        Utils.writeContents(overwrittenFile, content);
+    }
+
+    /**
+     * TODO: 3: java gitlet.Main checkout [branch name]
+     * TODO: 3: Takes all files in the commit at the head of the given branch, and puts them in the working directory,
+     * TODO: overwriting the versions of the files that are already there if they exist. Also, at the end of this command,
+     * TODO: the given branch will now be considered the current branch (HEAD).
+     * TODO: Any files that are tracked in the current branch but are not present in the checked-out branch are deleted.
+     * TODO: The staging area is cleared, unless the checked-out branch is the current branch (see Failure cases below).
+     * TODO: 3: If no branch with that name exists, print No such branch exists. If that branch is the current branch,
+     * TODO: print No need to checkout the current branch. If a working file is untracked in the current branch and
+     * TODO: would be overwritten by the checkout, print "There is an untracked file in the way; delete it, or add and commit it first."
+     * TODO: and exit; perform this check before doing anything else. Do not change the CWD.
+     * @param branchName
+     */
+    public static void checkoutBranch(String branchName) {
+
+    }
 }

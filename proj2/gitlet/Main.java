@@ -1,6 +1,7 @@
 package gitlet;
 
 import java.io.File;
+import java.util.Objects;
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
  *  @author TODO
@@ -44,6 +45,15 @@ public class Main {
                 break;
             case "status":
                 Repository.status();
+                break;
+            case "checkout":
+                if (args.length == 2) {
+                    Repository.checkoutBranch(args[1]);
+                } else if (args.length == 3 && args[1].equals("--")) {
+                    Repository.checkoutFile(null, args[2]);
+                } else if (args.length == 4 && args[2].equals("--")) {
+                    Repository.checkoutFile(args[1], args[3]);
+                }
                 break;
             case "prIndex":
                 Index.printIndex();
