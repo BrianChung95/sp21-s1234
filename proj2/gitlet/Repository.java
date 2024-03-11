@@ -1,8 +1,6 @@
 package gitlet;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -218,7 +216,6 @@ public class Repository {
 
     /**
      * Displays current status of the repository.
-     * TODO: Entries should be listed in lexicographic order
      * TODO: Modifications Not Staged For Commit
      * TODO: Untracked Files
      */
@@ -293,8 +290,14 @@ public class Repository {
             System.out.println("No need to checkout the current branch.");
             return;
         }
+        String checkedOutHash = RepositoryUtils.getBranchHash(branchName);
+        checkoutCommit(checkedOutHash);
+        // The checked out branch is the current branch
+        RepositoryUtils.modifyHEADFileContentForBranch(Utils.join(HEADS_DIR, branchName));
+    }
 
-        Commit curBranch = RepositoryUtils.getHeadCommit();
+    public static void checkoutCommit(String commitHash) {
+        Commit curHead = RepositoryUtils.getHeadCommit();
 
         List<String> filenames = Utils.plainFilenamesIn(CWD);
         if (filenames == null) {
@@ -302,7 +305,7 @@ public class Repository {
         }
         for (String fn : filenames) {
             // Error if a working file is untracked in the current branch and would be overwritten by the checkout
-            if (!curBranch.isUpToDate(fn)) {
+            if (!curHead.isUpToDate(fn)) {
                 System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
                 return;
             }
@@ -311,18 +314,15 @@ public class Repository {
         for (String fn : filenames) {
             Utils.restrictedDelete(fn);
         }
-        // Restoring the files that are tracked in the checked out branch
-        String checkedOutHash = RepositoryUtils.getBranchHash(branchName);
-        Commit checkedOutBranch = RepositoryUtils.getCommit(checkedOutHash);
+        // Restoring the files that are tracked in the checked out commit
+        Commit checkedOutBranch = RepositoryUtils.getCommit(commitHash);
         filenames = new ArrayList<>(checkedOutBranch.getTrackedFiles().keySet());
         for (String fn : filenames) {
-            checkoutFile(checkedOutHash, fn);
+            checkoutFile(commitHash, fn);
         }
         // Clear Staging Area
         Index index = Index.loadIndex();
         index.cleanStagingArea();
-        // The checked out branch is the current branch
-        RepositoryUtils.modifyHEADFileContentForBranch(Utils.join(HEADS_DIR, branchName));
     }
 
 
@@ -354,5 +354,21 @@ public class Repository {
         if (!isDeleted) {
             System.out.println("A branch with that name does not exist.");
         }
+    }
+
+    /**
+     * Checks out all the files tracked by the given commit.
+     * Removes tracked files that are not present in that commit.
+     * Also moves the current branch’s head to that commit node.
+     * @param commitId The commit id we are resetting to
+     */
+    public static void reset(String commitId) {
+        try {
+            checkoutCommit(commitId);
+        } catch (IllegalArgumentException e) {
+            System.out.println("No commit with that id exists.");
+        }
+        File head = join(HEADS_DIR, getCurHead());
+        writeContents(head, commitId);
     }
 }

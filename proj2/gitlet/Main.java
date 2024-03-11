@@ -63,6 +63,9 @@ public class Main {
                     Repository.checkoutFile(args[1], args[3]);
                 }
                 break;
+            case "reset":
+                Repository.reset(args[1]);
+                break;
             case "branch":
                 Repository.branch(args[1]);
                 break;
