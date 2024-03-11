@@ -39,6 +39,11 @@ public class RepositoryUtils {
         return headHash;
     }
 
+    public static String getBranchHash(String branchName) {
+        File branchFile = Utils.join(Repository.HEADS_DIR, branchName);
+        return Utils.readContentsAsString(branchFile);
+    }
+
     /**
      * Look for the Commit that the HEAD pointer is pointing to and return it.
      * @return A Commit object which the HEAD pointer is pointing to.
@@ -54,13 +59,18 @@ public class RepositoryUtils {
         return readObject(commitFile, Commit.class);
     }
 
+    public static String getCurHead() {
+        String headFileContent = readContentsAsString(Repository.HEAD_FILE);
+        String curHead = headFileContent.substring(headFileContent.lastIndexOf('\\') + 1);
+        return curHead;
+    }
+
     public static List<String> getAllBranchesWithCurMarked() {
         List<String> filenames = Utils.plainFilenamesIn(Repository.HEADS_DIR);
         if (filenames == null) return null;
 
-        String headFileContent = readContentsAsString(Repository.HEAD_FILE);
         // Get the name of the current head by extracting word after the last \
-        String curHead = headFileContent.substring(headFileContent.lastIndexOf('\\') + 1);
+        String curHead = getCurHead();
         for (int i = 0; i < filenames.size(); ++i) {
             if (filenames.get(i).equals(curHead)) {
                 filenames.set(i, "*" + curHead);

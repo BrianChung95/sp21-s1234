@@ -1,11 +1,13 @@
 package gitlet;
 
-import java.io.File;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 
+/**
+ *
+ *  @author Brian Zhong
+ */
 public class Index implements Serializable {
     private HashMap<String, String> additionStagingArea;
     private HashSet<String> removalStagingArea;

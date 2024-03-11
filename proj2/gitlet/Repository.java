@@ -2,18 +2,18 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.NoSuchFileException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static gitlet.Utils.*;
 import static gitlet.RepositoryUtils.*;
 
-// TODO: any imports you need here
-
 /** Represents a gitlet repository.
  *  TODO: It's a good idea to give a description here of what else this Class
  *  does at a high level.
  *
- *  @author TODO
+ *  @author Brian Zhong
  */
 public class Repository {
     /**
@@ -121,7 +121,8 @@ public class Repository {
         // Create a new commit with staging area and message
         Commit newCommit = new Commit(index, message);
         String newSha = newCommit.persistCommit();
-        createOrModifyBranchFile("master", newSha);
+        String curHead = RepositoryUtils.getCurHead();
+        createOrModifyBranchFile(curHead, newSha);
         // The staging area is cleared after a commit.
         index.cleanStagingArea();
         index.saveIndex();
@@ -276,19 +277,82 @@ public class Repository {
     }
 
     /**
-     * TODO: 3: java gitlet.Main checkout [branch name]
-     * TODO: 3: Takes all files in the commit at the head of the given branch, and puts them in the working directory,
-     * TODO: overwriting the versions of the files that are already there if they exist. Also, at the end of this command,
-     * TODO: the given branch will now be considered the current branch (HEAD).
-     * TODO: Any files that are tracked in the current branch but are not present in the checked-out branch are deleted.
-     * TODO: The staging area is cleared, unless the checked-out branch is the current branch (see Failure cases below).
-     * TODO: 3: If no branch with that name exists, print No such branch exists. If that branch is the current branch,
-     * TODO: print No need to checkout the current branch. If a working file is untracked in the current branch and
-     * TODO: would be overwritten by the checkout, print "There is an untracked file in the way; delete it, or add and commit it first."
-     * TODO: and exit; perform this check before doing anything else. Do not change the CWD.
-     * @param branchName
+     * Checkout a branch. Restoring the versions of files that are tracked by the specific branch
+     * and removing files that are not tracked by that branch.
+     * @param branchName name of the branch that is checked out
      */
     public static void checkoutBranch(String branchName) {
+        // Error if no branch with that name exists.
+        List<String> allBranches = Utils.plainFilenamesIn(HEADS_DIR);
+        if (!allBranches.contains(branchName)) {
+            System.out.println("No such branch exists.");
+            return;
+        }
+        // Error if that branch is the current branch.
+        if (branchName.equals(RepositoryUtils.getCurHead())) {
+            System.out.println("No need to checkout the current branch.");
+            return;
+        }
 
+        Commit curBranch = RepositoryUtils.getHeadCommit();
+
+        List<String> filenames = Utils.plainFilenamesIn(CWD);
+        if (filenames == null) {
+            return;
+        }
+        for (String fn : filenames) {
+            // Error if a working file is untracked in the current branch and would be overwritten by the checkout
+            if (!curBranch.isUpToDate(fn)) {
+                System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                return;
+            }
+        }
+        // Removing all files in CWD
+        for (String fn : filenames) {
+            Utils.restrictedDelete(fn);
+        }
+        // Restoring the files that are tracked in the checked out branch
+        String checkedOutHash = RepositoryUtils.getBranchHash(branchName);
+        Commit checkedOutBranch = RepositoryUtils.getCommit(checkedOutHash);
+        filenames = new ArrayList<>(checkedOutBranch.getTrackedFiles().keySet());
+        for (String fn : filenames) {
+            checkoutFile(checkedOutHash, fn);
+        }
+        // Clear Staging Area
+        Index index = Index.loadIndex();
+        index.cleanStagingArea();
+        // The checked out branch is the current branch
+        RepositoryUtils.modifyHEADFileContentForBranch(Utils.join(HEADS_DIR, branchName));
+    }
+
+
+    /**
+     * Creates a new branch with the given name, and points it at the current head commit.
+     * @param branchName The name of the new branch.
+     */
+    public static void branch(String branchName) {
+        File newBranch = Utils.join(HEADS_DIR, branchName);
+        if (newBranch.exists()) {
+            System.out.println("A branch with that name already exists.");
+        }
+        String headHash = RepositoryUtils.getHeadHash();
+        Utils.writeContents(newBranch, headHash);
+    }
+
+    /**
+     * Deletes the branch with the given name.
+     * @param branchName The name of the branch being deleted.
+     */
+    public static void removeBranch(String branchName) {
+        String curBranch = RepositoryUtils.getCurHead();
+        if(curBranch.equals(branchName)) {
+            System.out.println("Cannot remove the current branch.");
+            return;
+        }
+        File branch = Utils.join(HEADS_DIR, branchName);
+        boolean isDeleted = branch.delete();
+        if (!isDeleted) {
+            System.out.println("A branch with that name does not exist.");
+        }
     }
 }

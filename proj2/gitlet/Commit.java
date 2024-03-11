@@ -16,7 +16,7 @@ import static gitlet.Utils.*;
  *  TODO: It's a good idea to give a description here of what else this Class
  *  does at a high level.
  *
- *  @author TODO
+ *  @author Brian Zhong
  */
 public class Commit implements Dumpable, Serializable {
     /**
@@ -126,6 +126,15 @@ public class Commit implements Dumpable, Serializable {
 
     public boolean isTracked(String fileName) {
         return trackedFiles.containsKey(fileName);
+    }
+
+    public boolean isUpToDate(String fileName) {
+        if (!isTracked(fileName)) {
+            return false;
+        }
+        File curVersion = Utils.join(Repository.CWD, fileName);
+        String newHash = Utils.sha1(Utils.readContentsAsString(curVersion));
+        return newHash.equals(trackedFiles.get(fileName));
     }
 
     @Override

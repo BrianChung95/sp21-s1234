@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.Objects;
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
- *  @author TODO
+ *  @author Brian Zhong
  */
 public class Main {
 
@@ -15,7 +15,15 @@ public class Main {
         if (args.length == 0) {
             return;
         }
+        // We can check if a repo is initialized or not by checking if there's a .gitlet folder
+        File gitlet = Utils.join(Repository.CWD, ".gitlet");
+        boolean isInitialized = gitlet.exists();
         String firstArg = args[0];
+
+        // We cannot perform commands other than init without initializing the repo
+        if (!isInitialized && !firstArg.equals("init")) {
+            return;
+        }
         switch(firstArg) {
             case "init":
                 Repository.init();
@@ -55,6 +63,12 @@ public class Main {
                     Repository.checkoutFile(args[1], args[3]);
                 }
                 break;
+            case "branch":
+                Repository.branch(args[1]);
+                break;
+            case "rm-branch":
+                Repository.removeBranch(args[1]);
+                break;
             case "prIndex":
                 Index.printIndex();
                 break;
@@ -65,7 +79,6 @@ public class Main {
                 System.out.println("Tracked files: " + commit.getTrackedFiles());
                 System.out.println("Message: " + commit.getMessage());
                 break;
-                // TODO: FILL THE REST IN
         }
     }
 }
