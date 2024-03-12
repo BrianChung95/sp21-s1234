@@ -72,6 +72,18 @@ public class Main {
             case "rm-branch":
                 Repository.removeBranch(args[1]);
                 break;
+            case "merge":
+                Repository.merge(args[1]);
+                break;
+            case "prCommon":
+                Commit commit1 = RepositoryUtils.getHeadCommit();
+                Commit commit2 = RepositoryUtils.getBranchHead(args[1]);
+                Commit commit3 = RepositoryUtils.findSplitPoint(commit1, commit2);
+                System.out.println("Parent: " + commit3.getParent());
+                System.out.println("Commit time: " + commit3.getTimestamp());
+                System.out.println("Tracked files: " + commit3.getTrackedFiles());
+                System.out.println("Message: " + commit3.getMessage());
+                break;
             case "prIndex":
                 Index.printIndex();
                 break;

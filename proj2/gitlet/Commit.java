@@ -34,6 +34,8 @@ public class Commit implements Dumpable, Serializable {
     private String timestamp;
     private String parent;
 
+    private final int length;
+
     private HashMap<String, String> trackedFiles;
 
     public String getMessage() {
@@ -74,15 +76,18 @@ public class Commit implements Dumpable, Serializable {
     public Commit() {
         this.message = "initial commit";
         this.parent = null;
-        this.timestamp = Utils.formatDate(new Date(0L)); // TODO: verify this time
+        this.timestamp = Utils.formatDate(new Date(0L));
         this.trackedFiles = new HashMap<>();
+        this.length = 1;
     }
 
     public Commit(Index index, String message) {
+        Commit headCommit = RepositoryUtils.getHeadCommit();
         this.message = message;
         this.parent = RepositoryUtils.getHeadHash();
         this.timestamp = Utils.formatDate(new Date());
-        this.trackedFiles = RepositoryUtils.getHeadCommit().getTrackedFiles();
+        this.trackedFiles = headCommit.getTrackedFiles();
+        this.length = headCommit.getLength() + 1;
         HashMap<String, String> addStagingArea = index.getAdditionStagingArea();
         HashSet<String> removeStagingArea = index.getRemovalStagingArea();
         for (Map.Entry<String, String> entry : addStagingArea.entrySet()) {
@@ -96,10 +101,17 @@ public class Commit implements Dumpable, Serializable {
         }
     }
 
+    public int getLength() {
+        return length;
+    }
+
+    public String getCommitId() {
+        byte[] serializedCommit = serialize(this);
+        return sha1(serializedCommit);
+    }
 
     public String  persistCommit() {
-        byte[] serializedCommit = serialize(this);
-        String commitHash = sha1(serializedCommit);
+        String commitHash = getCommitId();
         File commit = join(Repository.OBJ_DIR, commitHash);
         if (!commit.exists()) {
             try {
@@ -139,12 +151,24 @@ public class Commit implements Dumpable, Serializable {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("Date: ");
-        sb.append(this.timestamp);
-        sb.append("\n");
-        sb.append(this.message);
-        sb.append("\n");
-        return sb.toString();
+        return "Date: " + this.timestamp +
+                "\n" +
+                this.message +
+                "\n";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) {
+            return true;
+        }
+
+        if (!(o instanceof Commit)) {
+            return false;
+        }
+
+        Commit commit = (Commit) o;
+        return this.getCommitId().equals(commit.getCommitId());
     }
 
 

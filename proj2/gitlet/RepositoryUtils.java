@@ -10,7 +10,7 @@ public class RepositoryUtils {
 
     public static void modifyHEADFileContentForBranch(File branchFile) {
         String headFileContent = Repository.HEAD_FILE_REF_PREFIX +
-                Utils.computeRelativePath(Repository.GITLET_DIR, branchFile);
+                computeRelativePath(Repository.GITLET_DIR, branchFile);
         writeContents(Repository.HEAD_FILE, headFileContent);
     }
 
@@ -40,8 +40,8 @@ public class RepositoryUtils {
     }
 
     public static String getBranchHash(String branchName) {
-        File branchFile = Utils.join(Repository.HEADS_DIR, branchName);
-        return Utils.readContentsAsString(branchFile);
+        File branchFile = join(Repository.HEADS_DIR, branchName);
+        return readContentsAsString(branchFile);
     }
 
     /**
@@ -50,13 +50,17 @@ public class RepositoryUtils {
      */
     public static Commit getHeadCommit() {
         String headHash = getHeadHash();
-        File headFile = join(Repository.OBJ_DIR, headHash);
-        return readObject(headFile, Commit.class);
+        return getCommit(headHash);
     }
 
     public static Commit getCommit(String hash) {
         File commitFile = join(Repository.OBJ_DIR, hash);
         return readObject(commitFile, Commit.class);
+    }
+
+    public static Commit getBranchHead(String branchName) {
+        String branchHash = getBranchHash(branchName);
+        return getCommit(branchHash);
     }
 
     public static String getCurHead() {
@@ -66,7 +70,7 @@ public class RepositoryUtils {
     }
 
     public static List<String> getAllBranchesWithCurMarked() {
-        List<String> filenames = Utils.plainFilenamesIn(Repository.HEADS_DIR);
+        List<String> filenames = plainFilenamesIn(Repository.HEADS_DIR);
         if (filenames == null) return null;
 
         // Get the name of the current head by extracting word after the last \
@@ -77,5 +81,30 @@ public class RepositoryUtils {
             }
         }
         return filenames;
+    }
+
+    public static Commit findSplitPoint(Commit commit1, Commit commit2) {
+        int len1 = commit1.getLength();
+        int len2 = commit2.getLength();
+        if (len2 > len1) {
+            return findSplitPoint(commit2, commit1);
+        }
+        int delta = len1 - len2;
+
+        Commit cur1 = commit1;
+        Commit cur2 = commit2;
+
+        while (delta > 0) {
+            cur1 = getCommit(cur1.getParent());
+            --delta;
+        }
+
+        while (!cur1.equals(cur2)) {
+            cur1 = getCommit(cur1.getParent());
+            cur2 = getCommit(cur2.getParent());
+            System.out.println(cur1);
+            System.out.println(cur2);
+        }
+        return cur1;
     }
 }

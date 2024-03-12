@@ -3,6 +3,7 @@ package gitlet;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static gitlet.Utils.*;
 import static gitlet.RepositoryUtils.*;
@@ -310,15 +311,23 @@ public class Repository {
                 return;
             }
         }
-        // Removing all files in CWD
+        Commit checkedOutCommit = RepositoryUtils.getCommit(commitHash);
+        // Removing files not tracked by checked out commit
         for (String fn : filenames) {
-            Utils.restrictedDelete(fn);
+            if (!checkedOutCommit.isTracked(fn)) {
+                Utils.restrictedDelete(fn);
+            }
         }
         // Restoring the files that are tracked in the checked out commit
-        Commit checkedOutBranch = RepositoryUtils.getCommit(commitHash);
-        filenames = new ArrayList<>(checkedOutBranch.getTrackedFiles().keySet());
-        for (String fn : filenames) {
-            checkoutFile(commitHash, fn);
+        Map<String, String> curTracked = curHead.getTrackedFiles();
+        Map<String, String> checkedOutTracked = checkedOutCommit.getTrackedFiles();
+        for (String fn : checkedOutTracked.keySet()) {
+            // If files are not tracked by current commit but tracked by the checked out commit,
+            // or files tracked by checked out commit is different from those tracked by current commit,
+            // restore those files, otherwise, do nothing.
+            if (!curHead.isTracked(fn) || !curTracked.get(fn).equals(checkedOutTracked.get(fn))){
+                checkoutFile(commitHash, fn);
+            }
         }
         // Clear Staging Area
         Index index = Index.loadIndex();
@@ -370,5 +379,61 @@ public class Repository {
         }
         File head = join(HEADS_DIR, getCurHead());
         writeContents(head, commitId);
+    }
+
+    /**
+     *
+     * @param branchName
+     */
+    public static void merge(String branchName) {
+        Commit curHead = getHeadCommit();
+        Commit mergedCommit = getBranchHead(branchName);
+        Commit splitPoint = findSplitPoint(curHead, mergedCommit);
+        // If the split point is the same commit as the given branch, then we do nothing
+        if (mergedCommit.equals(splitPoint)) {
+            System.out.println("Given branch is an ancestor of the current branch.");
+            return;
+        }
+        // If the split point is the current branch, then the effect is to check out the given branch
+        if (curHead.equals(splitPoint)) {
+            checkoutBranch(branchName);
+            System.out.println("Current branch fast-forwarded.");
+            return;
+        }
+
+
+
+        // Any files that have been modified in the current branch but not in the given branch since the split point should stay as they are.
+        // Any files that have been modified in both the current and given branch in the same way are left unchanged
+        // Any files that were not present at the split point and are present only in the current branch should remain as they are.
+        // Any files present at the split point, unmodified in the given branch, and absent in the current branch should remain absent.
+
+
+        Map<String, String> mergedTrackedFiles = mergedCommit.getTrackedFiles();
+        Map<String, String> headTrackedFiles = curHead.getTrackedFiles();
+        Map<String, String> splitTrackedFiles = splitPoint.getTrackedFiles();
+        String mergedIdCommitId = mergedCommit.getCommitId();
+        for (String fn : mergedTrackedFiles.keySet()) {
+            String hashInMerged = mergedTrackedFiles.get(fn);
+            String hashInHead = headTrackedFiles.get(fn);
+            String hashInSplit = splitTrackedFiles.get(fn);
+            // 1. Any files that were not present at the split point and are present only in the given branch
+            // should be checked out and staged.
+            // 2. Any files that have been modified in the given branch since the split point,
+            // but not modified in the current branch should be checked out and staged.
+            if (hashInHead == null && hashInSplit == null && hashInMerged != null ||
+                hashInMerged != null && hashInHead != null &&
+                !hashInMerged.equals(hashInHead) && hashInHead.equals(hashInSplit)) {
+                checkoutFile(mergedIdCommitId, fn);
+            // Any files present at the split point, unmodified in the current branch,
+            // and absent in the given branch should be removed (and untracked).
+            } else if (hashInMerged == null && hashInSplit != null && hashInSplit.equals(hashInHead)) {
+                remove(fn);
+            }
+        }
+
+
+
+        // Any files modified in different ways in the current and given branches are in conflict.
     }
 }
