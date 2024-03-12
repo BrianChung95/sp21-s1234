@@ -1,7 +1,6 @@
 package gitlet;
 
 import java.io.File;
-import java.util.Objects;
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
  *  @author Brian Zhong
@@ -13,6 +12,7 @@ public class Main {
      */
     public static void main(String[] args) {
         if (args.length == 0) {
+            System.out.println("Please enter a command.");
             return;
         }
         // We can check if a repo is initialized or not by checking if there's a .gitlet folder
@@ -22,6 +22,7 @@ public class Main {
 
         // We cannot perform commands other than init without initializing the repo
         if (!isInitialized && !firstArg.equals("init")) {
+            System.out.println("Not in an initialized Gitlet directory.");
             return;
         }
         switch(firstArg) {
@@ -32,7 +33,7 @@ public class Main {
                 Repository.add(args[1]);
                 break;
             case "commit":
-                if (args.length == 1) {
+                if (args.length == 1 || args[1].isEmpty()) {
                     System.out.println("Please enter a commit message.");
                     return;
                 }
@@ -94,6 +95,8 @@ public class Main {
                 System.out.println("Tracked files: " + commit.getTrackedFiles());
                 System.out.println("Message: " + commit.getMessage());
                 break;
+            default:
+                System.out.println("No command with that name exists.");
         }
     }
 }

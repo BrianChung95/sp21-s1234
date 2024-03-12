@@ -107,4 +107,11 @@ public class RepositoryUtils {
         }
         return cur1;
     }
+
+    public static void generateConflictFile(File fileInHead, File fileInGivenBranch) {
+        String contentInHead = readContentsAsString(fileInHead);
+        String contentInGivenBranch = readContentsAsString(fileInGivenBranch);
+        String content = "<<<<<<< HEAD\n" + contentInHead + "=======\n" + contentInGivenBranch + ">>>>>>>\n";
+        writeContents(fileInHead, content);
+    }
 }

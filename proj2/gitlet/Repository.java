@@ -201,6 +201,7 @@ public class Repository {
     public static void find(String message) {
         if (message.isEmpty()) return;
 
+        boolean found = false;
         List<String> filenames = Utils.plainFilenamesIn(OBJ_DIR);
         if (filenames == null) return;
         for (String fn : filenames) {
@@ -209,10 +210,12 @@ public class Repository {
                 Commit commit = Utils.readObject(commitFile, Commit.class);
                 if (message.equals(commit.getMessage())){
                     System.out.println(fn);
+                    found = true;
                 }
             } catch (IllegalArgumentException e) {
             }
         }
+        if (!found) System.out.println("Found no commit with that message.");
     }
 
     /**
@@ -237,7 +240,10 @@ public class Repository {
         System.out.println();
 
         System.out.println("=== Modifications Not Staged For Commit ===");
+        System.out.println();
+
         System.out.println("=== Untracked Files ===");
+        System.out.println();
     }
 
     /**
@@ -292,13 +298,23 @@ public class Repository {
             return;
         }
         String checkedOutHash = RepositoryUtils.getBranchHash(branchName);
-        checkoutCommit(checkedOutHash);
+        try {
+            checkoutCommit(checkedOutHash);
+        } catch (Exception e) {
+        }
         // The checked out branch is the current branch
         RepositoryUtils.modifyHEADFileContentForBranch(Utils.join(HEADS_DIR, branchName));
     }
 
-    public static void checkoutCommit(String commitHash) {
+    public static void checkoutCommit(String commitHash) throws IllegalArgumentException {
         Commit curHead = RepositoryUtils.getHeadCommit();
+        Commit checkedOutCommit;
+        try {
+            checkedOutCommit = RepositoryUtils.getCommit(commitHash);
+        } catch (IllegalArgumentException e) {
+            System.out.println("No commit with that id exists.");
+            throw new IllegalArgumentException();
+        }
 
         List<String> filenames = Utils.plainFilenamesIn(CWD);
         if (filenames == null) {
@@ -306,12 +322,12 @@ public class Repository {
         }
         for (String fn : filenames) {
             // Error if a working file is untracked in the current branch and would be overwritten by the checkout
-            if (!curHead.isUpToDate(fn)) {
+            if (!curHead.isUpToDate(fn) && checkedOutCommit.isTracked(fn)) {
                 System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
                 return;
             }
         }
-        Commit checkedOutCommit = RepositoryUtils.getCommit(commitHash);
+
         // Removing files not tracked by checked out commit
         for (String fn : filenames) {
             if (!checkedOutCommit.isTracked(fn)) {
@@ -374,11 +390,13 @@ public class Repository {
     public static void reset(String commitId) {
         try {
             checkoutCommit(commitId);
+            File head = join(HEADS_DIR, getCurHead());
+            writeContents(head, commitId);
         } catch (IllegalArgumentException e) {
-            System.out.println("No commit with that id exists.");
+            return;
         }
-        File head = join(HEADS_DIR, getCurHead());
-        writeContents(head, commitId);
+
+
     }
 
     /**
@@ -432,8 +450,7 @@ public class Repository {
             }
         }
 
-
-
         // Any files modified in different ways in the current and given branches are in conflict.
+
     }
 }

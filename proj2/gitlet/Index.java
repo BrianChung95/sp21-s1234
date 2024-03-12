@@ -80,6 +80,7 @@ public class Index implements Serializable {
     public void cleanStagingArea() {
         this.additionStagingArea.clear();
         this.removalStagingArea.clear();
+        this.saveIndex();
     }
 
     public static void printIndex() {
